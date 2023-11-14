@@ -1,6 +1,6 @@
-package com.code.controller;
+package com.hx2.desk.controller;
 
-import com.code.dto.Persona;
+import com.hx2.desk.dto.Persona;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;

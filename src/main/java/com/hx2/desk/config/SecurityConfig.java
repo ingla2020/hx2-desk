@@ -1,4 +1,4 @@
-package com.code.config;
+package com.hx2.desk.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -12,24 +12,20 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
-
-import java.util.Arrays;
+import org.springframework.security.web.authentication.logout.HeaderWriterLogoutHandler;
+import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
+import org.springframework.security.web.header.writers.ClearSiteDataHeaderWriter;
+import org.springframework.security.web.server.authentication.logout.DelegatingServerLogoutHandler;
+import org.springframework.security.web.server.authentication.logout.SecurityContextServerLogoutHandler;
+import org.springframework.security.web.server.authentication.logout.WebSessionServerLogoutHandler;
+import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -42,23 +38,24 @@ public class SecurityConfig {
     private BCryptPasswordEncoder encodePWD;
 
     @Autowired
-    private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private CustomBasicAuthenticationEntryPoint customAuthenticationEntryPoint;
 
 
-    /*
+/*
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(UserService.userDetailsService()).passwordEncoder(encodePWD);
+        //auth.userDetailsService(UserService.userDetailsService()).passwordEncoder(encodePWD);
 
-//        String pwd = "123";
-//        String encryptPwd = encodePWD.encode(pwd);
-//        auth.inMemoryAuthentication().
-  //              withUser("leo@gmail.com").password(encryptPwd).roles("ADMIN");
+        String pwd = "123";
+        String encryptPwd = encodePWD.encode(pwd);
+        auth.inMemoryAuthentication().
+                withUser("leo@gmail.com").password(encryptPwd).roles("ADMIN");
 
     }
-    */
+*/
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+
             return httpSecurity
                     .httpBasic(Customizer.withDefaults())
                     .cors(AbstractHttpConfigurer::disable)
@@ -71,36 +68,33 @@ public class SecurityConfig {
                     .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     //.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                     .authorizeHttpRequests((requests) -> requests
-                             .requestMatchers(HttpMethod.GET,"/helpdesk/**").authenticated()
-                             .requestMatchers(HttpMethod.GET,"/login").permitAll()
-                             .requestMatchers(HttpMethod.GET,"/static/**").permitAll()
-                            .requestMatchers(HttpMethod.OPTIONS,"/**").authenticated()
-                            .requestMatchers("/**").authenticated()
+//                             .requestMatchers(HttpMethod.GET,"/helpdesk/**").authenticated()
+                             .requestMatchers(new AntPathRequestMatcher("/helpdesk/**")).authenticated()
+//                             .requestMatchers(HttpMethod.GET,"/login").permitAll()
+                            .requestMatchers(new AntPathRequestMatcher("/helpdesk/login")).permitAll()
+//                             .requestMatchers(HttpMethod.GET,"/static/**").permitAll()
+                             .requestMatchers(new AntPathRequestMatcher("/static/**")).permitAll()
+//                            .requestMatchers(HttpMethod.OPTIONS,"/**").authenticated()
+                            //.requestMatchers("/**").authenticated()
                             .anyRequest().authenticated()
                     )
-                   // .formLogin(Customizer.withDefaults())
-
+                    //.formLogin(Customizer.withDefaults())
                     .formLogin(form -> form
-                                        .loginPage("/login")
-                             .loginProcessingUrl("/login")
+                                        .loginPage("/helpdesk/login")
+                             .loginProcessingUrl("/helpdesk/login")
                             //.failureUrl(LOGIN_FAIL_URL)
                             //.usernameParameter(USERNAME)
                             //.passwordParameter(PASSWORD)
-                            .defaultSuccessUrl("/home", true)
+                            .defaultSuccessUrl("/helpdesk/home", true)
                     )
                     //.logout((logout) -> logout.permitAll())
+                    //.logout((logout) -> logout.logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler()))
                     .logout(Customizer.withDefaults())
                     .authenticationProvider(authenticationProvider())
                     //.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                     .build();
 
         }
-
-
-    //@Bean
-    //public PasswordEncoder passwordEncoder() {
-       // return new BCryptPasswordEncoder();
-    //}
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
@@ -116,4 +110,10 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 
+  /*
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring().requestMatchers("/resources/**", "/static/**");
+    }
+*/
 }

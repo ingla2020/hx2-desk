@@ -1,4 +1,4 @@
-package com.code.dto;
+package com.hx2.desk.dto;
 
 public class Persona {
     private String nombre;

@@ -1,10 +1,12 @@
-package com.code.model;
+package com.hx2.desk.model;
 
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 
 @Entity
@@ -13,8 +15,8 @@ import java.time.OffsetDateTime;
 public class HelpdeskAccount {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    @UuidGenerator
+    private UUID id;
     private String accountId;
     private String accountName;
     private String accountEmail;

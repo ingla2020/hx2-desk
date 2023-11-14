@@ -1,6 +1,6 @@
-package com.code.repository;
+package com.hx2.desk.repository;
 
-import com.code.model.User;
+import com.hx2.desk.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

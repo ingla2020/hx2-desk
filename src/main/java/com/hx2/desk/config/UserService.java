@@ -1,4 +1,4 @@
-package com.code.config;
+package com.hx2.desk.config;
 
 import org.springframework.security.core.userdetails.UserDetailsService;
 
